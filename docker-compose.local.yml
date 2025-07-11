@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: webapp-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: GardaTrophy2019
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - webapp-network
+
+  backend:
+    build: ./backend
+    container_name: webapp-backend
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: GardaTrophy2019
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: test_db
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    networks:
+      - webapp-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: webapp-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - webapp-network
+    restart: unless-stopped
+
+networks:
+  webapp-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

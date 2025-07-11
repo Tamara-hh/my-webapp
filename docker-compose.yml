@@ -2,51 +2,37 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:17-alpine
-    container_name: webapp-postgres
+    image: postgres:14-alpine
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: GardaTrophy2019
-      POSTGRES_DB: test_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - webapp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: ./backend
-    container_name: webapp-backend
-    environment:
-      DB_USER: postgres
-      DB_PASSWORD: GardaTrophy2019
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: test_db
     ports:
       - "5000:5000"
+    environment:
+      NODE_ENV: production
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
     depends_on:
-      - postgres
-    networks:
-      - webapp-network
-    restart: unless-stopped
+      postgres:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
-    container_name: webapp-frontend
     ports:
       - "80:80"
     depends_on:
       - backend
-    networks:
-      - webapp-network
-    restart: unless-stopped
-
-networks:
-  webapp-network:
-    driver: bridge
-
-volumes:
-  postgres_data:
