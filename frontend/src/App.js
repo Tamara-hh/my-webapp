@@ -16,7 +16,7 @@ function App() {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/users');
+      const response = await fetch('/api/users');
       const data = await response.json();
       setUsers(data);
       setError('');
@@ -34,7 +34,7 @@ function App() {
     if (!newUserName.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch('/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ function App() {
     if (!window.confirm('Удалить этого пользователя?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${id}`, {
+      const response = await fetch(`/api/users/${id}`, {
         method: 'DELETE',
       });
       
